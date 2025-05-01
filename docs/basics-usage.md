@@ -69,3 +69,37 @@ including all references:
 ```bash
 bowler run rename_func.py -- foo bar
 ```
+
+## Testing lib2to3 Patterns
+
+When working with Bowler, understanding and testing `lib2to3` patterns can be challenging for new users. To make this process easier, you can use the following utility function to experiment with patterns in a REPL environment:
+
+```python
+from pprint import pprint
+
+from fissix import pytree, pygram
+from fissix.patcomp import PatternCompiler
+from fissix.pgen2 import driver
+
+d = driver.Driver(pygram.python_grammar.copy(), pytree.convert)
+pc = PatternCompiler()
+
+def test(pattern, code):
+    pat = pc.compile_pattern(pattern)
+    for node in d.parse_string(code).pre_order():
+        for match in pat.generate_matches([node]):
+            pprint(match)
+
+# Example usage:
+pattern="""
+call=power<
+  any*
+  trailer<"." "foo">
+  trailer<"(" args=any* ")">
+>
+"""
+# Prints out details about both the f.foo and bar.foo calls
+test(pattern,'a = f.foo(123) + bar.foo("adf")\n')
+```
+
+This function allows you to quickly iterate and test patterns, making it easier to write and understand them. You can copy this function into your own scripts or REPL sessions to experiment with different patterns.

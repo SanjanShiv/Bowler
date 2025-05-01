@@ -224,3 +224,30 @@ def filename_endswith(ext: Union[Sequence, str]) -> FilenameMatcher:
         return any(filename.endswith(e) for e in ext)
 
     return inner
+
+
+def test_pattern(pattern, code):
+    """
+    Utility function to test lib2to3 patterns.
+
+    Args:
+        pattern (str): The pattern to test.
+        code (str): The code to match against the pattern.
+
+    Returns:
+        list: A list of matches found in the code.
+    """
+    from pprint import pprint
+    from fissix import pytree, pygram
+    from fissix.patcomp import PatternCompiler
+    from fissix.pgen2 import driver
+
+    d = driver.Driver(pygram.python_grammar.copy(), pytree.convert)
+    pc = PatternCompiler()
+
+    matches = []
+    pat = pc.compile_pattern(pattern)
+    for node in d.parse_string(code).pre_order():
+        for match in pat.generate_matches([node]):
+            matches.append(match)
+    return matches
